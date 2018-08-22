@@ -173,17 +173,19 @@ def data_generator(annotation_lines, batch_size, input_shape, anchors, num_class
     '''data generator for fit_generator'''
     n = len(annotation_lines)
     i = 0
+    # Necessary for infinite loop? Or exit after iterate all lines?
     while True:
         image_data = []
         box_data = []
-        for b in range(batch_size):
+        batch_index = 0
+        while batch_index < batch_size:
             if i == 0:
                 np.random.shuffle(annotation_lines)
-            image, box = get_random_data(annotation_lines[i], input_shape, random=True)
-            if image:
+            image, box = get_random_data(annotation_lines[i], input_shape, random=False)
+            if image and box:
                 image_data.append(image)
-            if box:
                 box_data.append(box)
+                batch_index += 1 # only update when the image exist to make sure batch is always batch_size
             i = (i + 1) % n
         image_data = np.array(image_data)
         box_data = np.array(box_data)

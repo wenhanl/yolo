@@ -1,4 +1,6 @@
 *.jpg
+*.csv
+*.label
 *.png
 *.weights
 *.h5
