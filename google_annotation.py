@@ -14,9 +14,9 @@ with open('./trimed_training.csv', newline='') as csvfile:
     for row in reader:
         if prev_row and prev_row[0] != row[0]:
             print(row_string)
-            row_string = '~/data/train/' + row[0] + '.jpg'
+            row_string = '/home/ubuntu/data/train/' + row[0] + '.jpg'
         if not prev_row:
-            row_string = '~/data/train/' + row[0] + '.jpg'
+            row_string = '/home/ubuntu/data/train/' + row[0] + '.jpg'
         row_string += ' '
         row_string += ','.join(row[1:-1])
         row_string += ','

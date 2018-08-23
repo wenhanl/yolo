@@ -187,6 +187,7 @@ def data_generator(annotation_lines, batch_size, input_shape, anchors, num_class
                 box_data.append(box)
                 batch_index += 1 # only update when the image exist to make sure batch is always batch_size
             i = (i + 1) % n
+            print(i)
         image_data = np.array(image_data)
         box_data = np.array(box_data)
         y_true = preprocess_true_boxes(box_data, input_shape, anchors, num_classes)
