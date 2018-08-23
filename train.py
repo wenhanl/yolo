@@ -14,10 +14,10 @@ from yolo3.utils import get_random_data
 
 
 def _main():
-    annotation_path = 'train.txt'
+    annotation_path = 'train.label'
     log_dir = 'logs/000/'
     classes_path = 'model_data/google_classes.txt'
-    anchors_path = 'model_data/tiny-yolo_anchors.txt'
+    anchors_path = 'model_data/tiny_yolo_anchors.txt'
     class_names = get_classes(classes_path)
     num_classes = len(class_names)
     anchors = get_anchors(anchors_path)
@@ -182,11 +182,15 @@ def data_generator(annotation_lines, batch_size, input_shape, anchors, num_class
             if i == 0:
                 np.random.shuffle(annotation_lines)
             image, box = get_random_data(annotation_lines[i], input_shape, random=False)
-            if image and box:
+            if image is not None:
                 image_data.append(image)
                 box_data.append(box)
-                batch_index += 1 # only update when the image exist to make sure batch is always batch_size
+                # batch_index += 1 # only update when the image exist to make sure batch is always batch_size
+            else:
+                print('no image')
+            batch_index += 1
             i = (i + 1) % n
+            print(i)
         image_data = np.array(image_data)
         box_data = np.array(box_data)
         y_true = preprocess_true_boxes(box_data, input_shape, anchors, num_classes)
