@@ -35,11 +35,11 @@ def _main():
 
     logging = TensorBoard(log_dir=log_dir)
     checkpoint = ModelCheckpoint(log_dir + 'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5',
-                                 monitor='val_loss', save_weights_only=True, save_best_only=True, period=3)
+                                 monitor='val_loss', save_weights_only=True, save_best_only=True, period=5)
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=1)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1)
 
-    val_split = 0.1
+    val_split = 0.02
     with open(annotation_path) as f:
         lines = f.readlines()
     np.random.seed(10101)
@@ -58,13 +58,13 @@ def _main():
         batch_size = 32
         print('Train on {} samples, val on {} samples, with batch size {}.'.format(num_train, num_val, batch_size))
         model.fit_generator(data_generator_wrapper(lines[:num_train], batch_size, input_shape, anchors, num_classes),
-                            steps_per_epoch=max(1, num_train // batch_size),
+                            steps_per_epoch=max(1, num_train // batch_size // 50),
                             validation_data=data_generator_wrapper(lines[num_train:], batch_size, input_shape, anchors,
                                                                    num_classes),
-                            validation_steps=max(1, num_val // batch_size),
+                            validation_steps=max(1, num_val // batch_size),  # It's the right value, don't touch
                             epochs=50,
                             initial_epoch=0,
-                            callbacks=[logging, checkpoint])
+                            callbacks=[logging])
         model.save_weights(log_dir + 'trained_weights_stage_1.h5')
 
     # Unfreeze and continue training, to fine-tune.
@@ -79,11 +79,11 @@ def _main():
         batch_size = 32  # note that more GPU memory is required after unfreezing the body
         print('Train on {} samples, val on {} samples, with batch size {}.'.format(num_train, num_val, batch_size))
         model.fit_generator(data_generator_wrapper(lines[:num_train], batch_size, input_shape, anchors, num_classes),
-                            steps_per_epoch=max(1, num_train // batch_size),
+                            steps_per_epoch=max(1, num_train // batch_size // 50),
                             validation_data=data_generator_wrapper(lines[num_train:], batch_size, input_shape, anchors,
                                                                    num_classes),
                             validation_steps=max(1, num_val // batch_size),
-                            epochs=100,
+                            epochs=500,
                             initial_epoch=50,
                             callbacks=[logging, checkpoint, reduce_lr, early_stopping])
         model.save_weights(log_dir + 'trained_weights_final.h5')
@@ -173,7 +173,6 @@ def data_generator(annotation_lines, batch_size, input_shape, anchors, num_class
     '''data generator for fit_generator'''
     n = len(annotation_lines)
     i = 0
-    # Necessary for infinite loop? Or exit after iterate all lines?
     while True:
         image_data = []
         box_data = []
@@ -190,7 +189,6 @@ def data_generator(annotation_lines, batch_size, input_shape, anchors, num_class
                 print('no image')
             batch_index += 1
             i = (i + 1) % n
-            print(i)
         image_data = np.array(image_data)
         box_data = np.array(box_data)
         y_true = preprocess_true_boxes(box_data, input_shape, anchors, num_classes)
