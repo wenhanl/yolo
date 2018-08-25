@@ -42,7 +42,7 @@ def get_random_data(annotation_line, input_shape, random=False, max_boxes=200, j
                     proc_img=True):
     '''random preprocessing for real-time data augmentation'''
     line = annotation_line.split()
-    if not os.path.expanduser(line[0]):
+    if not os.path.isfile(line[0]):
         print('Unable to find file' + line[0])
         return None, None
     image = Image.open(line[0])
