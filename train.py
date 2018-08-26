@@ -35,11 +35,11 @@ def _main():
 
     logging = TensorBoard(log_dir=log_dir)
     checkpoint = ModelCheckpoint(log_dir + 'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5',
-                                 monitor='val_loss', save_weights_only=True, save_best_only=False, period=15)
+                                 monitor='val_loss', save_weights_only=True, save_best_only=False, period=5)
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=20, verbose=1, min_lr=1e-4)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1)
 
-    val_split = 0.0002
+    val_split = 0.0001
     with open(annotation_path) as f:
         lines = f.readlines()
     np.random.seed(10101)
@@ -185,10 +185,9 @@ def data_generator(annotation_lines, batch_size, input_shape, anchors, num_class
             if image is not None:
                 image_data.append(image)
                 box_data.append(box)
-                # batch_index += 1 # only update when the image exist to make sure batch is always batch_size
+                batch_index += 1 # only update when the image exist to make sure batch is always batch_size
             else:
                 print('no image')
-            batch_index += 1
             i = (i + 1) % n
         image_data = np.array(image_data)
         box_data = np.array(box_data)
