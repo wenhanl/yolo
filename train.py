@@ -7,7 +7,7 @@ import keras.backend as K
 from keras.layers import Input, Lambda
 from keras.models import Model
 from keras.optimizers import Adam
-from keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
+from keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau, EarlyStopping, LearningRateScheduler
 
 from yolo3.model import preprocess_true_boxes, yolo_body, tiny_yolo_body, yolo_loss
 from yolo3.utils import get_random_data
@@ -35,8 +35,8 @@ def _main():
 
     logging = TensorBoard(log_dir=log_dir)
     checkpoint = ModelCheckpoint(log_dir + 'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5',
-                                 monitor='val_loss', save_weights_only=True, save_best_only=False, period=5)
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=20, verbose=1, min_lr=1e-4)
+                                 monitor='val_loss', save_weights_only=True, save_best_only=False, period=3)
+    reduce_lr = ReduceLROnPlateau(monitor='loss', factor=0.2, patience=10, verbose=1, min_lr=1e-6)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1)
 
     val_split = 0.0001
@@ -71,16 +71,16 @@ def _main():
     # Train longer if the result is not good.
     if True:
         num_layers = len(model.layers)
-        for i in range(num_layers//3, num_layers):
+        for i in range(num_layers):
             model.layers[i].trainable = True
-        model.compile(optimizer=Adam(lr=1e-3),
+        model.compile(optimizer=Adam(lr=1e-4),
                       loss={'yolo_loss': lambda y_true, y_pred: y_pred})  # recompile to apply the change
         print('Unfreeze all of the layers.')
 
-        batch_size = 16  # note that more GPU memory is required after unfreezing the body
+        batch_size = 12 # note that more GPU memory is required after unfreezing the body
         print('Train on {} samples, val on {} samples, with batch size {}.'.format(num_train, num_val, batch_size))
         model.fit_generator(data_generator_wrapper(lines[:num_train], batch_size, input_shape, anchors, num_classes),
-                            steps_per_epoch=max(1, num_train // batch_size // 200),
+                            steps_per_epoch=max(1, num_train // batch_size // 100),
                             validation_data=data_generator_wrapper(lines[num_train:], batch_size, input_shape, anchors,
                                                                    num_classes),
                             validation_steps=max(1, num_val // batch_size),
