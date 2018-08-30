@@ -1,19 +1,33 @@
 import argparse
-from yolo import YOLO, detect_video
+import os
+from yolo_nodraw import YOLO
 from PIL import Image
 
 
 def detect_img(yolo):
-    while True:
-        img = input('Input image filename:')
+    file = open('prediction.txt', 'w')
+    index = 0
+    for img in os.listdir('img'):
+        # img = "15455953700_7e53b8f53e_o.jpg"
         try:
-            image = Image.open(img)
+            image = Image.open('img/' + img)
         except:
             print('Open Error! Try again!')
             continue
-        else:
-            r_image = yolo.detect_image(image)
-            r_image.show()
+        yolo.detect_image(image, img, file)
+        index += 1
+        if index % 50 == 0:
+            print(index)
+    # while True:
+    #     img = input('Input image filename:')
+    #     try:
+    #         image = Image.open("img/15455953700_7e53b8f53e_o.jpg")
+    #     except:
+    #         print('Open Error! Try again!')
+    #         continue
+    #     else:
+    #         r_image = yolo.detect_image(image)
+    #         r_image.show()
     yolo.close_session()
 
 
@@ -38,6 +52,16 @@ if __name__ == '__main__':
     parser.add_argument(
         '--classes_path', type=str,
         help='path to class definitions, default ' + YOLO.get_defaults("classes_path")
+    )
+
+    parser.add_argument(
+        '--score', type=float,
+        help='path to score threshold, default '
+    )
+
+    parser.add_argument(
+        '--iou_all_classes', type=float,
+        help='path to score threshold, default '
     )
 
     parser.add_argument(
@@ -72,7 +96,5 @@ if __name__ == '__main__':
         if "input" in FLAGS:
             print(" Ignoring remaining command line arguments: " + FLAGS.input + "," + FLAGS.output)
         detect_img(YOLO(**vars(FLAGS)))
-    elif "input" in FLAGS:
-        detect_video(YOLO(**vars(FLAGS)), FLAGS.input, FLAGS.output)
     else:
         print("Must specify at least video_input_path.  See usage with --help.")

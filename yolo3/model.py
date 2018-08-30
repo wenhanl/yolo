@@ -188,9 +188,10 @@ def yolo_eval(yolo_outputs,
               anchors,
               num_classes,
               image_shape,
-              max_boxes=20,
+              max_boxes=40,
               score_threshold=.6,
-              iou_threshold=.5):
+              iou_threshold=.5,
+              diff_class_iou_threshold=None):
     """Evaluate YOLO model on given input and return filtered boxes."""
     num_layers = len(yolo_outputs)
     anchor_mask = [[6,7,8], [3,4,5], [0,1,2]] if num_layers==3 else [[3,4,5], [1,2,3]] # default setting
@@ -222,9 +223,17 @@ def yolo_eval(yolo_outputs,
         boxes_.append(class_boxes)
         scores_.append(class_box_scores)
         classes_.append(classes)
+
     boxes_ = K.concatenate(boxes_, axis=0)
     scores_ = K.concatenate(scores_, axis=0)
     classes_ = K.concatenate(classes_, axis=0)
+
+    if diff_class_iou_threshold is not None:
+        right_indics = tf.image.non_max_suppression(
+            boxes_, scores_, max_boxes_tensor, iou_threshold=diff_class_iou_threshold)
+        boxes_ = K.gather(boxes_, right_indics)
+        scores_ = K.gather(scores_, right_indics)
+        classes_ = K.gather(classes_, right_indics)
 
     return boxes_, scores_, classes_
 

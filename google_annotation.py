@@ -8,7 +8,7 @@ with open('./model_data/google_classes.txt') as f:
     classes = f.read().splitlines()
     class_to_id = {classes[index]: index for index in range(len(classes))}
 
-with open('./trimed_training.csv', newline='') as csvfile:
+with open('./filtered_train.csv', newline='') as csvfile:
     reader = csv.reader(csvfile)
     prev_row = None
     for row in reader:
