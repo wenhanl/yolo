@@ -4,17 +4,18 @@ from yolo_nodraw import YOLO
 from PIL import Image
 
 
-def detect_img(yolo):
-    file = open('prediction.txt', 'w')
+def detect_img(yolo, score):
+    file = open('prediction_' + str(score) + '.txt', 'w')
     index = 0
-    for img in os.listdir('img'):
+    directory = 'challenge2018_test'
+    for img in os.listdir(directory):
         # img = "15455953700_7e53b8f53e_o.jpg"
         try:
-            image = Image.open('img/' + img)
+            image = Image.open(directory + '/' + img)
         except:
             print('Open Error! Try again!')
             continue
-        yolo.detect_image(image, img, file)
+        yolo.detect_image(image, img[:-4], file)
         index += 1
         if index % 50 == 0:
             print(index)
@@ -95,6 +96,6 @@ if __name__ == '__main__':
         print("Image detection mode")
         if "input" in FLAGS:
             print(" Ignoring remaining command line arguments: " + FLAGS.input + "," + FLAGS.output)
-        detect_img(YOLO(**vars(FLAGS)))
+        detect_img(YOLO(**vars(FLAGS)), FLAGS.score)
     else:
         print("Must specify at least video_input_path.  See usage with --help.")

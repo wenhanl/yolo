@@ -120,17 +120,22 @@ class YOLO(object):
             box = out_boxes[i]
             score = out_scores[i]
 
-            label = '{} {:.2f}'.format(predicted_class, min(score * 2, 0.95))
+            label = '{} {:.3f}'.format(predicted_class, min(score * 2, 0.95))
 
             top, left, bottom, right = box
             top = max(0, np.floor(top + 0.5).astype('int32'))
             left = max(0, np.floor(left + 0.5).astype('int32'))
             bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int32'))
             right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
-            position = '{:.2f} {:.2f} {:.2f} {:.2f}'.format(left / width, top / height, right / width, bottom / height)
+            xmin = '{:.4f}'.format(left/width)
+            ymin = '{:.4f}'.format(top / height)
+            xmax = '{:.4f}'.format(right / width)
+            ymax = '{:.4f}'.format(bottom / height)
+            if xmin == xmax or ymin == ymax:
+               continue
+            position = '{} {} {} {}'.format(xmin, ymin, xmax, ymax)
             to_print += (label + ' ' + position + ' ')
 
-        print(to_print)
         file.write(to_print + '\n')
 
         return image

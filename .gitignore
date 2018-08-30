@@ -9,6 +9,7 @@ logs/
 venv/
 .idea/
 goog_annotation_with_path.txt
+*.zip
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
